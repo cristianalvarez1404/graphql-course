@@ -6,17 +6,29 @@ const books = [
     id:1,
     title: 'The Awakening',
     author: 'Kate Chopin',
-    category: "HORROR"
+    category: ["ACTION"],
+    type:"EBook",
+    format:"PDF"
   },
   {
     id:2,
     title: 'City of Glass',
     author: 'Paul Auster',
-    category: "FANTASY"
+    category: ["FANTASY","ACTION"],
+    type:"Audiobook",
+    duration: 60
   }
 ];
 
 const typeDefs = `#graphql
+
+  interface IBook {
+    id: ID
+    title: String!
+    author: String!
+    category: [Category]!
+    type: String!
+  }
 
   enum Category {
     HORROR
@@ -24,27 +36,48 @@ const typeDefs = `#graphql
     ACTION
   }
 
-  type Book {
+  type EBook implements IBook {
     id: ID
-    title: String
-    author: String
-    category: Category
+    title: String!
+    author: String!
+    category: [Category]!
+    type: String!
+    format: String!
+  }
+
+  type Audiobook implements IBook {
+    id: ID
+    title: String!
+    author: String!
+    category: [Category]!
+    type: String!
+    duration: Int!
   }
 
   type Query {
-    getBooks: [Book]
-    getBook(id: Int!):Book
+    getBooks: [IBook]!
+    getBook(id: Int!):IBook,
+    getBooksByType(typeBook:String!): [IBook]
   }
 
 `;
 
 const resolvers = {
+  IBook: {
+    __resolveType(obj){
+      if(obj.type === "EBook") return "EBook";
+      if(obj.type === "Audiobook") return "Audiobook";
+      return null
+    }
+  },
   Query: {
     getBooks: () => books,
-    getBook:(_, { id }) => {
-      if(!id) return null
+    getBook:(_, { id }) => {  
       return books.find(book => book.id === id) || null
-    }
+    },
+    getBooksByType(_, { typeBook }){
+      return books.filter(b => b.type === typeBook);
+    }    
   },
 };
 
