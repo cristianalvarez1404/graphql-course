@@ -30,6 +30,8 @@ const typeDefs = `#graphql
     type: String!
   }
 
+  union BooksUnion = EBook | Audiobook 
+
   enum Category {
     HORROR
     FANTASY
@@ -55,14 +57,21 @@ const typeDefs = `#graphql
   }
 
   type Query {
-    getBooks: [IBook]!
-    getBook(id: Int!):IBook,
+    getBooks: [BooksUnion]!
+    getBook(id: Int!):BooksUnion,
     getBooksByType(typeBook:String!): [IBook]
   }
 
 `;
 
 const resolvers = {
+  BooksUnion: {
+    __resolveType(obj){
+      if(obj.type === "EBook") return "EBook";
+      if(obj.type === "Audiobook") return "Audiobook";
+      return null
+    }
+  },
   IBook: {
     __resolveType(obj){
       if(obj.type === "EBook") return "EBook";
