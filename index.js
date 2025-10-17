@@ -27,7 +27,7 @@ const typeDefs = `#graphql
     title: String!
     author: String!
     category: [Category]!
-    type: String!
+    type: String
   }
 
   union BooksUnion = EBook | Audiobook 
@@ -37,6 +37,13 @@ const typeDefs = `#graphql
     FANTASY
     ACTION
   }
+
+  input BookInput {
+    title: String!
+    author: String!
+    category: [Category]!
+    type: String
+  } 
 
   type EBook implements IBook {
     id: ID
@@ -60,6 +67,10 @@ const typeDefs = `#graphql
     getBooks: [BooksUnion]!
     getBook(id: Int!):BooksUnion,
     getBooksByType(typeBook:String!): [IBook]
+  }
+
+  type Mutation {
+    createBook( book:BookInput! ): IBook
   }
 
 `;
@@ -88,6 +99,33 @@ const resolvers = {
       return books.filter(b => b.type === typeBook);
     }    
   },
+  Mutation: {
+    createBook:(_, { book }) => {
+      let new_book;
+
+      if(book.type === "EBook"){
+        new_book = {
+          type:"Ebook",
+          id: books.length + 1,
+          format:"PDF",
+          ...book
+        }
+      }else if(book.type === "Audiobook"){
+        new_book = {
+          type:"Audiobook",
+          id: books.length + 1,
+          duration:60,
+          ...book
+        }
+      }else {
+        throw new Error("Error")
+      }
+      books.push(new_book);
+      return new_book;
+    }
+  }
+
+
 };
 
 const server = new ApolloServer({
