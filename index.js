@@ -43,7 +43,13 @@ const typeDefs = `#graphql
     author: String!
     category: [Category]!
     type: String
-  } 
+  }
+
+  input BookUpdateInput {
+    title: String
+    author: String
+    category: [Category]
+  }
 
   type EBook implements IBook {
     id: ID
@@ -71,6 +77,7 @@ const typeDefs = `#graphql
 
   type Mutation {
     createBook( book:BookInput! ): IBook
+    updateBook(id: Int!, book:BookUpdateInput!): IBook
   }
 
 `;
@@ -122,6 +129,17 @@ const resolvers = {
       }
       books.push(new_book);
       return new_book;
+    },
+    updateBook: (_, { id, book}) => {
+      const index = books.findIndex(b => b.id === id)
+
+      if(index === -1){
+        throw new Error("Not found")
+      }
+
+      books[index] = {...books[index], ...book}
+
+      return books[index];
     }
   }
 
